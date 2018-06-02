@@ -1,6 +1,7 @@
 import serial
 import psycopg2
 import os
+import setproctitle
 
 def connect_db():
     conn = psycopg2.connect("host='localhost' dbname='solar' user='solarslave' password='solarslave'")
@@ -28,7 +29,37 @@ def insert(cur, values, plan):
     cur.execute("execute "+plan+" (%s,%s,%s,%s,%s,%s,%s,%s,%s)", values)
 
 
+def write_ramdisk(volts, current, power, pwm1, pwm2, pwm3, temp1, temp2, temp3, opmode, full=False):
+    try:
+        fh = open('/mnt/ramdisk/liveinfo.txt','w')
+        #str(volts)+";"+str(current)+";"+str(power)+";"+str(pwm1)+";"+str(pwm2)+";"+str(pwm3)+str(temp1)+";"+str(temp2)+";"+str(temp3)+";"+str(opmode)
+        fh.write(str(volts)+";"+str(current)+";"+str(power)+";"+str(pwm1)+";"+str(pwm2)+";"+str(pwm3)+";"+str(temp1)+";"+str(temp2)+";"+str(temp3)+";"+str(opmode))
+        fh.close()
+        
+        if full == True:
+            fh = open('/mnt/ramdisk/power.txt','w')
+            fh.write(str(power))
+            fh.close()
+
+            fh = open('/mnt/ramdisk/volts.txt','w')
+            fh.write(str(volts))
+            fh.close()
+            
+            fh = open('/mnt/ramdisk/amps.txt','w')
+            fh.write(str(current))
+            fh.close()
+        
+            fh = open('/mnt/ramdisk/annotate.txt','w')
+            fh.write(str(power)+"W "+str(volts)+"V "+str(round(float(current)/1000,2))+"A")
+            fh.close()
+            
+    except:
+        print "some kind of error, skipping write"
+
 if __name__ == "__main__":
+    print "Main starts"
+    setproctitle.setproctitle('solarwhisper')
+
     ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=5)
     #ser.write("AT\r")
     conn = connect_db()
@@ -112,13 +143,11 @@ if __name__ == "__main__":
                 conn.commit()
                 if operation_mode == 'NORMAL':
                     if uploadcounter > 60:
-                        commands = "'echo "+str(power)+" > /mnt/ramdisk/power.txt"
-                        commands += " && echo "+str(volts)+" > /mnt/ramdisk/volts.txt"
-                        commands += " && echo "+str(float(current)/1000)+" > /mnt/ramdisk/amps.txt"
-                        commands += " && echo "+str(power)+"W "+str(volts)+"V "+str(round(float(current)/1000,2))+"A > /mnt/ramdisk/annotate.txt'"
-                        os.system("ssh -i ~/.ssh/id_rsa_nopass pi@192.168.1.19 "+commands)
                         uploadcounter = 0
-                    uploadcounter += 1
+
+                write_ramdisk(volts, current, power, pwm1, pwm2, pwm3, temp1, temp2, temp3, operation_mode, full=(uploadcounter==0))
+                uploadcounter += 1
+
             else: #Debug print only
                 try:
                     volts, current, power, pwm, temp1, temp2, temp3 = response.replace('\n','').split(';')
@@ -137,14 +166,12 @@ if __name__ == "__main__":
             curvemeasure += 1
         else:
             print response
-    #except:
-    #    conn.commit()
-    #    ser.close()
-    #    disconnect_db(conn)
-
     ser.close()
     disconnect_db(conn)
                            
+
+
+
 
 
 
