@@ -56,21 +56,21 @@ Reading | ################################################## | 100% 0.02s
 avrdude: Device signature = 0x1e960a (probably m644p)
 avrdude: reading input file "main.hex"
 avrdude: input file main.hex auto detected as Intel Hex
-avrdude: writing flash (16454 bytes):
+avrdude: writing flash (16496 bytes):
 
-Writing | ################################################## | 100% 3.19s
+Writing | ################################################## | 100% 3.27s
 
-avrdude: 16454 bytes of flash written
+avrdude: 16496 bytes of flash written
 avrdude: verifying flash memory against main.hex:
 avrdude: load data flash data from input file main.hex:
 avrdude: input file main.hex auto detected as Intel Hex
-avrdude: input file main.hex contains 16454 bytes
+avrdude: input file main.hex contains 16496 bytes
 avrdude: reading on-chip flash data:
 
 Reading | ################################################## | 100% 3.61s
 
 avrdude: verifying ...
-avrdude: 16454 bytes of flash verified
+avrdude: 16496 bytes of flash verified
 
 avrdude done.  Thank you.
 
